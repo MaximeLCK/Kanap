@@ -20,13 +20,6 @@ fetch("http://localhost:3000/api/products")
     console.log(err);
   });
 //------------------------------------------------------------------------
-// Création d'objet articleClient
-//------------------------------------------------------------------------
-// déclaration objet articleClient prêt à être modifiée 
-let articleClient = {};
-// id du procuit
-articleClient._id = id;
-//------------------------------------------------------------------------
 // Fonction pour la structure HTML du produit sur product.html
 //------------------------------------------------------------------------
 function affichageProduits(product) {
@@ -56,3 +49,44 @@ function affichageProduits(product) {
 console.log("affichage produits ok");
 }
 //------------------------------------------------------------------------
+// Panier
+//------------------------------------------------------------------------
+// Sélection du bouton ajouter au panier
+const btnPanier = document.querySelector("#addToCart");
+// Ecoute du bouton ajouter au panier
+btnPanier.addEventListener("click", (e) => {
+  // Empêche le rechargement de la page
+  e.preventDefault();
+//------------------------------------------------------------------------
+// Local Storage
+//------------------------------------------------------------------------
+// Déclaration de la variable avec les éléments du panier dans le local storage
+let articleClient = {};
+  // Récupération de la couleur choisie
+  articleClient.couleur = document.querySelector("#colors").value;
+  // Récupération de la quantité choisie
+  articleClient.quantite = document.querySelector("#quantity").value;
+  // Récupération de l'id du produit
+  articleClient._id = id;
+  // Récupération de l'objet articleClient dans le local storage
+  let produitLS = JSON.parse(localStorage.getItem("productArrayList"));
+  // Si le panier est vide
+  if (produitLS == null) {
+    // Création d'un tableau
+    produitLS = [];
+    // Ajout de l'objet articleClient dans le tableau
+    produitLS.push(articleClient);
+    // Ajout du tableau dans le local storage
+    localStorage.setItem("panier", JSON.stringify(produitLS));
+  } else {
+    // Ajout de l'objet articleClient dans le tableau
+    panier.push(articleClient);
+    // Ajout du tableau dans le local storage
+    localStorage.setItem("panier", JSON.stringify(produitLS));
+  }
+});
+  // // Affichage du nombre d'articles dans le panier
+  // document.querySelector("#cart span").innerHTML = panier.length;
+  // // Affichage de la confirmation d'ajout au panier
+  // document.querySelector("#confirmation").innerHTML = "Produit ajouté au panier";
+
