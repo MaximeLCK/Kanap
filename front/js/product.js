@@ -22,7 +22,7 @@ fetch("http://localhost:3000/api/products")
 //------------------------------------------------------------------------
 // Création d'objet articleClient
 //------------------------------------------------------------------------
-// déclaration objet articleClient prêt à être modifiée par les fonctions suivantes d'évènements
+// déclaration objet articleClient prêt à être modifiée 
 let articleClient = {};
 // id du procuit
 articleClient._id = id;
@@ -34,15 +34,18 @@ function affichageProduits(product) {
     let prix = document.querySelector("#price");
     let description = document.querySelector("#description");
     let imgProduit = document.querySelector(".item__img");
-    let titre = document.querySelector("#title");
+    let titreProduit = document.querySelector("#title");
     let couleurChoix = document.querySelector("#colors");
+    let titrePage = document.querySelector("title");
+
     // Boucle pour afficher les produits sur la page product.html
     for (let param of product) {
       if (id === param._id) {
         imgProduit.innerHTML = `<img src="${param.imageUrl}" alt="${param.altTxt}">`;
-        titre.innerHTML = `${param.name}`;
+        titreProduit.innerHTML = `${param.name}`;
         prix.innerHTML = `${param.price}`;
         description.innerHTML = `${param.description}`;
+        titrePage.innerHTML = `${param.name}`;
 
     // Boucle pour afficher les couleurs du produit
     for (let couleur of param.colors) {
