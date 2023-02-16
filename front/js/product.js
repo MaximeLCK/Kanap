@@ -1,29 +1,55 @@
 //------------------------------------------------------------------------
 // Récupération de la chaine de requête dans l'url
 //------------------------------------------------------------------------
-const queryString_url_id = window.location.search;
 // Récupération de l'url de l'id du produit
-const urlSearchParams = new URLSearchParams(queryString_url_id);
+const urlParams = new URLSearchParams(window.location.search);
 // Récupération de l'id du produit
-const _id = urlSearchParams.get("_id");
-console.log(_id);
+const id = urlParams.get("_id");
+// console.log(id);
 // -----------------------------------------------------------------------
 // Requête pour récupérer les données du produit
 // ------------------------------------------------------------------------
 fetch("http://localhost:3000/api/products")
   .then((res) => res.json())
-  .then((objetProduits) => {
+  .then((produits) => {
     // execution de la fontion lesProduits
-    lesProduits(objetProduits);
+    affichageProduits(produits);
   })
-  .catch((error) => {
+  .catch((err) => {
     document.querySelector(".item").innerHTML = "<h1>Erreur 404</h1>";
-    console.log(error);
+    console.log(err);
   });
-
+//------------------------------------------------------------------------
+// Création d'objet articleClient
+//------------------------------------------------------------------------
+// déclaration objet articleClient prêt à être modifiée par les fonctions suivantes d'évènements
+let articleClient = {};
+// id du procuit
+articleClient._id = id;
 //------------------------------------------------------------------------
 // Fonction pour la structure HTML du produit sur product.html
 //------------------------------------------------------------------------
-function lesProduits(produit) {
-    // déclaration de variable pour la position des produits
-    const positionProduits2 = document.querySelector("#item");
+function affichageProduits(product) {
+    // déclaration des variables pour la position des produits
+    let prix = document.querySelector("#price");
+    let description = document.querySelector("#description");
+    let imgProduit = document.querySelector(".item__img");
+    let titre = document.querySelector("#title");
+    let couleurChoix = document.querySelector("#colors");
+    // Boucle pour afficher les produits sur la page product.html
+    for (let param of product) {
+      if (id === param._id) {
+        imgProduit.innerHTML = `<img src="${param.imageUrl}" alt="${param.altTxt}">`;
+        titre.innerHTML = `${param.name}`;
+        prix.innerHTML = `${param.price}`;
+        description.innerHTML = `${param.description}`;
+
+    // Boucle pour afficher les couleurs du produit
+    for (let couleur of param.colors) {
+      couleurChoix.innerHTML += `<option value="${couleur}">${couleur}</option>`;
+    }
+  }
+}
+console.log("affichage produits ok");
+}
+//------------------------------------------------------------------------
