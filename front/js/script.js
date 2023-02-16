@@ -4,12 +4,12 @@
 fetch("http://localhost:3000/api/products")
   // quand tu as la réponse donne le résultat en json.
   .then((res) => res.json())
-  // ce résultat en json est stocké dans la variable objetProduits.
-  .then((objetProduits) => {
+  // ce résultat en json est stocké dans la variable products.
+  .then((products) => {
     // informations sur la console sous forme de tableau
-    console.table(objetProduits); 
+    console.table(products); 
     // appel de la fonction d'affichage des produits
-    affichageProduits(objetProduits);
+    affichageProduits(products);
   })
   // si erreur on remplace le contenu de titles par un h1 "erreur 404" et renvoit l'erreur sur la console.
   .catch((err) => {
