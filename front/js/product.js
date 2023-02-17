@@ -49,18 +49,8 @@ function affichageProduits(product) {
 console.log("affichage produits ok");
 }
 //------------------------------------------------------------------------
-// Panier
-//------------------------------------------------------------------------
-// Sélection du bouton ajouter au panier
-const btnPanier = document.querySelector("#addToCart");
-// Ecoute du bouton ajouter au panier
-btnPanier.addEventListener("click", (e) => {
-  // Empêche le rechargement de la page
-  e.preventDefault();
-//------------------------------------------------------------------------
-// Gestion du Panier & Local Storage
-//------------------------------------------------------------------------
 // Déclaration de la variable avec les éléments du panier 
+//------------------------------------------------------------------------
 let articleClient = {};
   // Récupération de la couleur choisie
   articleClient.couleur = document.querySelector("#colors").value;
@@ -68,6 +58,22 @@ let articleClient = {};
   articleClient.quantite = document.querySelector("#quantity").value;
   // Récupération de l'id du produit
   articleClient._id = id;
+//------------------------------------------------------------------------
+// Bouton ajouter au panier
+//------------------------------------------------------------------------
+// Sélection du bouton ajouter au panier
+const btnPanier = document.querySelector("#addToCart");
+// Ecoute du bouton ajouter au panier
+btnPanier.addEventListener("click", (e) => {
+  // Empêche le rechargement de la page
+  e.preventDefault();
+  // Return de la fonction des conditions de validation du panier
+  if (commandeInvalide()) return;
+});
+//------------------------------------------------------------------------
+// Fonction ajout du produit au panier
+//------------------------------------------------------------------------
+ function sauvegardeParnier() {
   // Récupération de l'objet articleClient dans le local storage
   let produitLS = JSON.parse(localStorage.getItem("panier"));
   // Si le panier est vide
@@ -78,25 +84,25 @@ let articleClient = {};
     produitLS.push(articleClient);
     // Ajout du tableau dans le local storage
     localStorage.setItem("panier", JSON.stringify(produitLS));
-
   } else {
     // Ajout de l'objet articleClient dans le tableau
     produitLS.push(articleClient);
     // Ajout du tableau dans le local storage
     localStorage.setItem("panier", JSON.stringify(produitLS));
   }
-  // Conditions de validation du panier COULEUR & QUANTITE
-if (articleClient.couleur === "" || articleClient.quantite == 0) {
-  alert("Veuillez choisir une couleur et une quantité");
-} else if (articleClient.quantite < 0) {
-  alert("Veuillez choisir une quantité supérieure à 0");
-} else if (articleClient.quantite > 100) {
-  alert("Veuillez choisir une quantité inférieure à 100");
-} 
-
-
-});
-
+}
+//------------------------------------------------------------------------
+// Fonction des Conditions de validation du panier COULEUR & QUANTITE
+//------------------------------------------------------------------------
+  function commandeInvalide() {
+  if (articleClient.couleur === "" || articleClient.quantite == 0) {
+    alert("Veuillez choisir une couleur et une quantité");
+  } else if (articleClient.quantite < 0) {
+    alert("Veuillez choisir une quantité supérieure à 0");
+  } else if (articleClient.quantite > 100) {
+    alert("Veuillez choisir une quantité inférieure à 100");
+  } return true; 
+}
 
 
 
