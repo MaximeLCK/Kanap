@@ -21,7 +21,7 @@ fetch("http://localhost:3000/api/products")
 //----------------------------------------------------------------------
 function affichageProduits(index) {
   // déclaration de variable pour la position des produits
-  const positionProduits = document.querySelector("#items");
+  const positionProduits = document.getElementById("items");
   // Boucle pour afficher les produits sur la page index.html
   for (let structureProduits of index) {
     // Afficher les produits sur la page index
