@@ -1,37 +1,38 @@
-//------------------------------------------------------------------------
-// Récupération des produits de l'api
-//------------------------------------------------------------------------ 
+//*------------------------------------------------------------------------
+//* FETCH | Récupération et Transmission des données de l'API
+//*------------------------------------------------------------------------ 
 fetch("http://localhost:3000/api/products")
-  // quand tu as la réponse donne le résultat en json.
-  .then((res) => res.json())
-  // ce résultat en json est stocké dans la variable products.
-  .then((produits) => {
-    // informations sur la console sous forme de tableau
-    console.table(produits); 
-    // appel de la fonction d'affichage des produits
-    affichageProduits(produits);
-  })
-  // si erreur on remplace le contenu de titles par un h1 "erreur 404" et renvoit l'erreur sur la console.
-  .catch((err) => {
-    document.querySelector(".titles").innerHTML = "<h1>Erreur 404</h1>";
-    console.log(err);
-  });
-//----------------------------------------------------------------------
-// Fonction pour la structure HTML du produit sur index.html
-//----------------------------------------------------------------------
-function affichageProduits(index) {
-  // déclaration de variable pour la position des produits
-  const positionProduits = document.getElementById("items");
-  // Boucle pour afficher les produits sur la page index.html
-  for (let structureProduits of index) {
-    // Afficher les produits sur la page index
-    positionProduits.innerHTML += `<a href="./product.html?_id=${structureProduits._id}">
-    <article>
-      <img src="${structureProduits.imageUrl}" alt="${structureProduits.altTxt}">
-      <h3 class="productName">${structureProduits.name}</h3>
-      <p class="productDescription">${structureProduits.description}</p>
-    </article>
-  </a>`;
-  }
+    // Obtention des données de l'API => conversion du résultat en .json
+    .then((res) => res.json())
+    // Les données sont transmises sous forme de paramètre : "products" [...]
+    .then((products) => {
+        // Affichage des données dans un tableau via la console
+        console.table(products)
+        // Appel de la fonction "hydrateProducts" + paramètre "products"
+        hydrateProducts(products)
+    })
+    // Si ERREUR : Affichage via HTML + console
+    .catch((err) => {
+        document.querySelector(".titles").innerHTML = "<h1>erreur 404</h1>"
+        console.error("[API] erreur 404 : " + err)
+    })
+
+//*----------------------------------------------------------------------
+//* Affichage des Produits de l'API
+//*----------------------------------------------------------------------
+function hydrateProducts(products) {
+    // Déclaration + Pointage de la <section> ayant pour id "#items"
+    const productsArea = document.querySelector("#items")
+    // Pour chaque indice "product" de "products" [...]
+    for (const product of products) {
+        // Création de : a>article>img+h3+p + ajout des valeurs dynamiques de l'API
+        productsArea.innerHTML +=
+            `<a href="./product.html?id=${product._id}">
+      <article>
+        <img src="${product.imageUrl}" alt="${product.altTxt}">
+        <h3 class="productName">${product.name}</h3>
+        <p class="productDescription">${product.description}</p>
+      </article>
+    </a>`
+    }
 }
-//------------------------------------------------------------------------

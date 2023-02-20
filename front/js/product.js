@@ -1,125 +1,196 @@
-//------------------------------------------------------------------------
-// Récupération de la chaine de requête dans l'url
-//------------------------------------------------------------------------
-// Récupération de l'url de l'id du produit
-const urlParams = new URLSearchParams(window.location.search);
-// Récupération de l'id du produit
-const id = urlParams.get("_id");
-console.log(id);
+//*--------------------------------------------------------------
+//* MAIN | Variables / Constantes / Appels de Fonctions
+//*--------------------------------------------------------------
+// Récupération de la valeur "id" dans l'URL (id=...)
+const id = new URLSearchParams(window.location.search).get("id")
+console.log("ID du produit à afficher :", id)
 
-const itemImg = document.querySelector(".item__img");
-const titleProduit = document.getElementById("title");
-const priceProduit = document.getElementById("price");
-const descriptionProduit = document.getElementById("description");
-const couleurProduit = document.getElementById("colors");
-const nombreProduitSelectionne = document.getElementById("quantity");
-
-/**
- * La fonction recuperationInformationsProduits() permet d'envoyer une requête fetch HTTP
- * en prenant comme paramètre dans l'URL l'id du produit cliqué sur la page index.HTML.
- * Si la réponse est résolue. Elle est retournée en format textuel JSON et renvoie
- * une nouvelle promesse grâce à la méthode JSON. La 2nde promesse traite les données reçues par
- * l'intermédiaire d'une condition. C'est à dire que si la constante produitSelectionne est vrai donc qu'il y a des
- * données alors j'éxecute la fonction traitementData(produitSelectionne).
- */
-function recuperationInformationsProduits() {
-
-    fetch("http://localhost:3000/api/products/" + id)
+//*------------------------------------------------------------------------
+//* FETCH | Récupération de l'objet "produit" à afficher via l'API
+//*------------------------------------------------------------------------ 
+fetch(`http://localhost:3000/api/products/${id}`)
+    // Obtention des données de l'API => conversion du résultat en .json
     .then((res) => res.json())
-    .then((objetProduits) => {
-      // execution de la fontion lesProduits
-      traitementData(objetProduits);
+    // Les données sont transmises sous forme de paramètre : "product" [...]        
+    .then((product) => {
+        // Appel de la fonction "hydrateProduct" + paramètre "product"        
+        hydrateProduct(product)
+        console.log(`Données de ${product.name} récupérées :`, product)
     })
+    // Si ERREUR : Affichage via HTML + console
     .catch((err) => {
-      document.querySelector(".item").innerHTML = "<h1>erreur 404</h1>";
-      console.log(err);
+        document.querySelector(".item").innerHTML = "<h1>erreur 404</h1>";
+        console.error("API - erreur 404 : " + err)
+    })
+
+//*------------------------------------------------------------------------
+//* Affichage du Produit 
+//*------------------------------------------------------------------------
+function hydrateProduct(product) {
+            // Titre de la page : Affichage dans l'onglet de navigation
+            document.title = `${product.name} | Kanap`
+
+            // Nom, Prix, Description
+            document.querySelector('#title').textContent = product.name
+            document.querySelector('#price').textContent = product.price
+            document.querySelector('#description').textContent = product.description
+
+            // Image + Alt
+            const imageParent = document.querySelector(".item__img")
+            const image = document.createElement("img")
+            image.src = product.imageUrl
+            image.alt = product.altTxt
+            imageParent.appendChild(image)
+
+            // Éléments : Couleurs disponibles
+            const colorsParent = document.querySelector("#colors")
+            const colors = product.colors
+            colors.forEach((color) => {
+                const colorSettings = document.createElement("option")
+                colorSettings.value = color
+                colorSettings.textContent = color
+                colorsParent.appendChild(colorSettings)
+            })
+            // Appel de la fonction + transmission du paramètre "product"
+            productToPurchase(product)
+        }
+
+
+//*------------------------------------------------------------------------
+//* Création d'un objet "Purchase" au clic du bouton "addToCart"
+//*------------------------------------------------------------------------
+function productToPurchase(product) {
+    // Écoute de l'élément #addToCart via méthode "addEventListener"
+    const buttonAddToCart = document.querySelector('#addToCart')
+    buttonAddToCart.addEventListener("click", () => {
+        // Récupération des valeurs input de #colors & #quantity
+        const color = document.querySelector('#colors').value
+        const quantity = document.querySelector('#quantity').value
+        // Création de la classe qui sera utilisée pour ajouter au panier
+        const purchase = {
+            id: product._id,
+            color: color,
+            quantity: Number(quantity),
+            name: product.name
+        }
+        console.log(`Préparation de ${purchase.name}:`, purchase)
+
+        // Contrôle de la validité de l'achat (Couleur / Quantité)
+        if (purchaseInvalid(purchase, color, quantity)) return
+        // Ajout du produit au Panier du Local Storage
+        addToCart(purchase, color)
+        // Réinitialisation du bouton "Ajouter au panier" après un achat
+        resetButton()
+    })
+}
+
+//*------------------------------------------------------------------------
+//* Contrôle de la validité d'ajout au panier
+//*------------------------------------------------------------------------
+function purchaseInvalid(purchase, color, quantity) {
+    // Invalide si : Couleur non définie / Quantité inféreure à 1 ou supérieure à 100 [...]
+    if (!color || quantity < 1 || quantity > 100) {
+        console.error(`Erreur lors de l'ajout au Panier de ${purchase.name} ! \n Couleur et/ou Quantité invalides :`, purchase)
+        alert(`Pour valider le choix de ${purchase.name} : \nVeuillez renseigner une couleur, et/ou une quantité entre 1 et 100`)
+        return true
+    }
+}
+
+//*------------------------------------------------------------------------
+//* Système d'ajout des produits au Panier 
+//*------------------------------------------------------------------------
+function addToCart(purchase, color) {
+    // Déclaration du Panier, clé "Cart" dans Local Storage
+    let myCart = JSON.parse(localStorage.getItem("Cart"))
+
+    // Si "myCart" est vide -> Création d'un tableau -> Ajout du 1er produit
+    if (myCart == null) {
+        myCart = []
+        myCart.push(purchase)
+        localStorage.setItem("Cart", JSON.stringify(myCart))
+        // Confirmation de l'ajout au panier
+        purchaseConfirmation(purchase)
+    }
+
+    // Ajouter d'autres produits : 1er cas de figure ->
+    // Si "myCart" n'est pas vide [...]
+    else if (myCart != null) {
+        // Boucle sur les éléments de "myCart"
+        for (i = 0; i < myCart.length; i++) {
+            if (
+                // Si le produit à ajouter est similaire : id/couleur
+                myCart[i].id == purchase.id &&
+                myCart[i].color == color
+            ) {
+                return (
+                    // => Ajout de quantité au produit déjà dans le panier
+                    myCart[i].quantity = Math.min(myCart[i].quantity + purchase.quantity, 100),
+                    localStorage.setItem("Cart", JSON.stringify(myCart)),
+                    // Confirmation de l'ajout au panier
+                    purchaseConfirmation(purchase)
+                )
+            }
+        }
+
+        // Ajouter d'autres produits : 2eme cas de figure ->
+        // Boucle sur les éléments de "myCart"
+        for (i = 0; i < myCart.length; i++) {
+            // Si produit à ajouter = ID similaire et couleur différente (OU) ID différent
+            if (myCart[i].id == purchase.id &&
+                myCart[i].color != color ||
+                myCart[i].id != purchase.id
+            ) {
+                return (
+                    // => Ajout d'un nouvel article dans le panier
+                    myCart.push(purchase),
+                    localStorage.setItem("Cart", JSON.stringify(myCart)),
+                    // Confirmation de l'ajout au panier
+                    purchaseConfirmation(purchase)
+                )
+            }
+        }
+    }
+}
+
+//*------------------------------------------------------------------------
+//* Confirmation de l'ajout de produit(s) au Panier
+//*------------------------------------------------------------------------
+function purchaseConfirmation(purchase) {
+    // Confirmations dans la Console
+    console.log(`${purchase.name} ${purchase.color} ajouté au Panier :`, purchase)
+    let myCart = JSON.parse(localStorage.getItem("Cart"))
+    console.log("Panier à jour :", myCart)
+
+    // Fenêtre de confirmation dans le navigateur
+    if (window.confirm(`${purchase.name} option: ${purchase.color} a bien été ajouté au panier !
+        Consuler le Panier [OK] | Rester à ${purchase.name} [Annuler]`)) {
+        window.location.href = "cart.html"
+    } else {
+        window.close
+    }
+    // Changement du style visuel du bouton "Ajouter au panier" (couleur/texte)
+    document.querySelector("#addToCart").style.color = "rgb(0, 205, 0)"
+    document.querySelector("#addToCart").textContent = "Produit ajouté !"
+}
+
+//*------------------------------------------------------------------------
+//* Réinitialisation des styles du Bouton "Ajouter au panier" :
+//*------------------------------------------------------------------------
+function resetButton() {
+    // On écoute "#colors"
+    let colorSettings = document.querySelector("#colors");
+    // Si évènement sur "input" ...
+    colorSettings.addEventListener("input", () => {
+        // Modification du style et texte
+        document.querySelector("#addToCart").style.color = "white";
+        document.querySelector("#addToCart").textContent = "Ajouter au panier";
     });
-}
-recuperationInformationsProduits();
-
-/**
- * La fonction traitementData(produitSelectionne) permet de traiter les données qui sont dans la constante produitSelectionne.
- * La création de l'élément HTML <img> et d'afficher les informations du produits.
- * Le choix de la couleur se fait via la boucle for...of et permet à l'utilisateur de sélectionner la couleur du produit
- * qui lui convient.
- */
-function traitementData(objetProduits) {
-
-  document.querySelector(".item__img").innerHTML+=
-        `<img src="${objetProduits.imageUrl}" alt="${objetProduits.name}">`
-        
-        document.querySelector("title").innerHTML+= `${objetProduits.name}`//title page
-        document.querySelector("#title").innerHTML+= `${objetProduits.name}`
-        document.querySelector("#price").innerHTML+= `${objetProduits.price}`
-        document.querySelector("#description").innerHTML+= `${objetProduits.description}`
-
-        for(color in objetProduits.colors){
-        document.querySelector("#colors").innerHTML+= 
-            `
-                <option value="${objetProduits.colors[color]}">${objetProduits.colors[color]}</option>
-            `
-        }
-
-    ajoutDuProduitDansPanier();
-}
-
-/**
- * La fonction ajoutDuProduitDansPanier(produitSelectionne) permet de gérer l'ajout du produit sélectionné avec la couleur choisie et
- * sa quantité dans le panier. Cet ajout se fait au clic grâce à un écouteur d'événement et il faut que la quantité soit comprise entre 0 et égal ou
- * inférieur à 100.
- * Ces informations lors du clic sur Ajouter au panier sont injecté dans le localStorage du navigateur et il y a traitement spécifique comme par exemple
- * la gestion des doublons. C'est à dire que si l'utilisateur reviens sur le même produit et choisi la même couleur mais une quantité différente. Ce produit
- * s'ajoutera à la 1ère sélection de l'utilisateur.
- */
-function ajoutDuProduitDansPanier() {
-    
-    const ajoutProduitDansPanier = document.getElementById("addToCart");
-
-    ajoutProduitDansPanier.addEventListener("click", function () {
-        if (nombreProduitSelectionne.value > 0 && nombreProduitSelectionne.value <= 100 && nombreProduitSelectionne.value != 0) {
-            let selectionDeLaCouleur = couleurProduit.value;
-            let selectionDeLaQuantite = nombreProduitSelectionne.value;
-
-            const produitsAjouteDansPanier = {
-                idProduit: id,
-                couleur: selectionDeLaCouleur,
-                quantite: selectionDeLaQuantite,
-            }
-            console.log(produitsAjouteDansPanier);
-
-            let produitDansLeLocalStorage = JSON.parse(localStorage.getItem("panier"));
-
-            if (selectionDeLaCouleur === "" || selectionDeLaQuantite == 0) {
-              alert("Veuillez choisir une couleur et une quantité");
-            } else if (selectionDeLaQuantite < 0) {
-              alert("Veuillez choisir une quantité supérieure à 0");
-            } else if (selectionDeLaQuantite > 100) {
-              alert("Veuillez choisir une quantité inférieure à 100");
-            } 
-
-            //Import du produit dans le localStorage
-            //Si le panier comporte déjà un produit.
-            if (produitDansLeLocalStorage) {
-                const resultat = produitDansLeLocalStorage.find((element) => element.idProduit === id && element.couleur === selectionDeLaCouleur);
-                //Si le produit commandé est déjà dans le panier.
-                if (resultat) {
-                    let nouvelleQuantite = parseInt(produitsAjouteDansPanier.quantite) + parseInt(resultat.quantite);
-                    resultat.quantite = nouvelleQuantite;
-                    localStorage.setItem("panier", JSON.stringify(produitDansLeLocalStorage));
-                    lienPageCart;
-                    //Si le produit n'est pas dans le panier
-                } else {
-                    produitDansLeLocalStorage.push(produitsAjouteDansPanier);
-                    localStorage.setItem("panier", JSON.stringify(produitDansLeLocalStorage));
-                    lienPageCart;
-                }
-                //Si le panier est vide
-            } else {
-                produitDansLeLocalStorage = [];
-                produitDansLeLocalStorage.push(produitsAjouteDansPanier);
-                localStorage.setItem("panier", JSON.stringify(produitDansLeLocalStorage));
-                lienPageCart
-            }
-        }
+    // On écoute 'input[id="quantity"]'
+    let quantitySettings = document.querySelector('input[id="quantity"]');
+    quantitySettings.addEventListener("input", () => {
+        // Si évènement sur "input" ...
+        document.querySelector("#addToCart").style.color = "white";
+        // Modification du style et texte
+        document.querySelector("#addToCart").textContent = "Ajouter au panier";
     });
 }
