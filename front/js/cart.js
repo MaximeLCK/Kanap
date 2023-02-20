@@ -149,3 +149,54 @@ function totalCart() {
     document.getElementById("totalQuantity").textContent = totalProducts
     document.getElementById("totalPrice").textContent = totalPrice
 }
+
+//*--------------------------------------------------------------
+//* Suppression du Panier : Local Storage + Affichage HTML
+//*--------------------------------------------------------------
+function deletePurchase() {
+    // Déclaration + Pointage de tous les éléments ".cart__item .deleteItem"
+    const deletePurchase = document.querySelectorAll(".cart__item .deleteItem")
+    // Pour chaque éléments [...]
+    deletePurchase.forEach((purchase) => {
+        // Écoute du click sur bouton "Supprimer" de chaque produit
+        purchase.addEventListener("click", () => {
+            // Appel du Panier en Local Storage
+            let myCart = JSON.parse(localStorage.getItem("Cart"))
+            // Boucle : Pour chaque élément du Panier [...]
+            for (let a = 0, b = myCart.length; a < b; a++)
+                if (
+                    // Si correspondance Panier/dataset (id/color)
+                    myCart[a].id === purchase.dataset.id &&
+                    myCart[a].color === purchase.dataset.color
+                ) {
+                    // Variable utile pour suppression
+                    const picked = [a];
+                    // Suppression de 1 élément à l'indice picked
+                    myCart.splice(picked, 1)
+                    // Renvoi du (nouveau) panier converti dans le Local Storage 
+                    localStorage.Cart = JSON.stringify(myCart)
+
+                    // Suppression de l'Affichage HTML
+                    const displayToDelete = document.querySelector(
+                        `article[data-id="${purchase.dataset.id}"][data-color="${purchase.dataset.color}"]`)
+                    displayToDelete.remove()
+
+                    // Confirmation(s) de la console
+                    console.log("Article supprimé")
+                    console.log("Panier mis à jour :", myCart)
+
+                    // Si Panier vide
+                    if (myCart && myCart.length == 0) {
+                        // Vider Local Storage ([] vide)                       
+                        window.localStorage.clear()
+                        // Affichage informatif
+                        document.querySelector("#totalQuantity").innerHTML = "0"
+                        document.querySelector("#totalPrice").innerHTML = "0"
+                        document.querySelector("h1").innerHTML =
+                            "Vous n'avez pas d'article dans votre panier"
+                    }
+                    totalCart(); // Appel de la fonction Total Quantité/Prix
+                }
+        })
+    })
+}
