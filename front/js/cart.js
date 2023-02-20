@@ -94,3 +94,58 @@ function hydrateCart(myCart) {
     // ".join()" permet de définir la jonction entre chaque <article> affiché
     // Par défaut c'est une virgule, on la remplace par un espace vide
 }
+
+
+//* --------------------------------------------------------------
+//* Modification de la Quantité d'un Produit
+//* --------------------------------------------------------------
+function updateQuantity() {
+    // Déclaration + Pointage de tous les éléments ".cart__item"
+    const cartArea = document.querySelectorAll(".cart__item");
+
+    // Écoute des évènements (eQuantity) sur chaque article (".itemQuantity")
+    cartArea.forEach((purchase) => {
+        purchase.addEventListener("change", (eQuantity) => {
+            const myCart = JSON.parse(localStorage.getItem("Cart"))
+            // Boucle sur les produits du Panier
+            for (product of myCart)
+                if (
+                    // Si id + color similaires
+                    product.id === purchase.dataset.id &&
+                    purchase.dataset.color === product.color
+                ) {
+                    // Modification de la quantité
+                    product.quantity = Math.min(eQuantity.target.value, 100)
+                    // Envoi au Local Storage
+                    localStorage.Cart = JSON.stringify(myCart)
+                    // Mise à jour du dataset quantity
+                    purchase.dataset.quantity = eQuantity.target.value
+                    // Appel de la fonction de Total dynamique
+                    totalCart();
+                }
+            console.log("Article modifié :", product.name, purchase.dataset.color)
+            console.log("Panier mis à jour :", myCart)
+        })
+    })
+}
+
+//*--------------------------------------------------------------
+//* Calcul et Affichage du Total Panier : Quantité + Prix
+//*--------------------------------------------------------------
+function totalCart() {
+    // Déclaration des variables de "Total" en tant que Number
+    let totalProducts = 0
+    let totalPrice = 0
+    // Déclaration + Pointage de tous les éléments ".cart__item"
+    const purchases = document.querySelectorAll(".cart__item")
+    // Boucle : pour chaque élément "purchase" des purchaseS
+    purchases.forEach((purchase) => {
+        // Récupération des quantités des produits via les dataset
+        totalProducts += JSON.parse(purchase.dataset.quantity)
+        // Calcul de prix panier total via les dataset
+        totalPrice += purchase.dataset.quantity * purchase.dataset.price
+    });
+    // Affichage des résultats dans le HTML
+    document.getElementById("totalQuantity").textContent = totalProducts
+    document.getElementById("totalPrice").textContent = totalPrice
+}
