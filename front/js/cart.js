@@ -93,6 +93,10 @@ function hydrateCart(myCart) {
     ).join("")
     // ".join()" permet de définir la jonction entre chaque <article> affiché
     // Par défaut c'est une virgule, on la remplace par un espace vide
+      // Appel des fonctions pour écoute : 
+      updateQuantity() // Modification de la quantité
+      deletePurchase() // Suppression d'un produit
+      totalCart() // Calcul total produits/prix panier
 }
 
 
