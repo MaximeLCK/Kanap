@@ -236,6 +236,7 @@ function listenToForm() {
 //* Envoi du Formulaire de commande
 //*--------------------------------------------------------------
 function submitForm(e) {
+    e.preventDefault();
     // Récupération du Formulaire valide
     const form = buildForm(e)
     // Si Formulaire invalide : Envoi annulé
@@ -253,7 +254,7 @@ function submitForm(e) {
         .then(res => {
             console.log("Formulaire de commande : ", res)
             alert("Votre commande a bien été effectuée !")
-            window.location.replace(`./confirmation.html?orderId=${res.orderId}`)
+            window.location.href = `confirmation.html?orderId=${res.orderId}`;
         })
         .catch((err) => {
             alert(err.message)
